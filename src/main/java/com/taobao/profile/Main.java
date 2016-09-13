@@ -8,8 +8,15 @@
  */
 package com.taobao.profile;
 
+import java.io.IOException;
+import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.Instrumentation;
+import java.lang.instrument.UnmodifiableClassException;
+import java.util.Arrays;
 
+import org.objectweb.asm.ClassReader;
+
+import com.taobao.profile.exception.ExceptionAsm;
 import com.taobao.profile.instrument.ProfTransformer;
 
 /**
@@ -26,7 +33,20 @@ public class Main {
 	 */
 	public static void premain(String args, Instrumentation inst) {
 		Manager.instance().initialization();
+		System.out.println(Arrays.toString(inst.getAllLoadedClasses()));
 		inst.addTransformer(new ProfTransformer());
+		try {
+			inst.redefineClasses(new ClassDefinition(Throwable.class, 
+					ExceptionAsm.transformExceptionClass(new ClassReader("java.lang.Throwable")).toByteArray()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnmodifiableClassException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		Manager.instance().startupThread();
 	}
 }

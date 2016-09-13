@@ -132,6 +132,7 @@ public class MysqlProfClassAdapter extends IClassAdapter {
 	/* (non-Javadoc)
 	 * @see org.objectweb.asm.ClassAdapter#visitMethod(int, java.lang.String, java.lang.String, java.lang.String, java.lang.String[])
 	 */
+	@Override
 	public MethodVisitor visitMethod(int arg, String name, String descriptor, String signature, String[] exceptions) {
 		MethodVisitor mv = super.visitMethod(arg, name, descriptor, signature, exceptions);
 

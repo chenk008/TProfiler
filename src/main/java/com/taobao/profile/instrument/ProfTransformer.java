@@ -8,12 +8,15 @@
  */
 package com.taobao.profile.instrument;
 
+import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 
 import com.taobao.profile.dependence_query.mysql.MysqlProfClassAdapter;
 import com.taobao.profile.dependence_query.mysql.MysqlProfFilter;
+import com.taobao.profile.exception.ExceptionAsm;
+
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -69,10 +72,19 @@ public class ProfTransformer implements ClassFileTransformer {
 	/* (non-Javadoc)
 	 * @see java.lang.instrument.ClassFileTransformer#transform(java.lang.ClassLoader, java.lang.String, java.lang.Class, java.security.ProtectionDomain, byte[])
 	 */
+	@Override
 	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
 	        ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 		if (loader != null && ProfFilter.isNotNeedInjectClassLoader(loader.getClass().getName())) {
 			return classfileBuffer;
+		}
+		
+		if(className.equals("java/lang/Throwable")){
+			try {
+				return ExceptionAsm.transformExceptionClass(new ClassReader(classfileBuffer)).toByteArray();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 
 		//如果可以注入mysql成功；则不再继续注入
